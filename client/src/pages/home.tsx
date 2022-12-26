@@ -1,16 +1,40 @@
 
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 import axios from "axios";
+
+import { motion } from "framer-motion";
 
 import Layout from "../components/Layout";
 import { Link } from "react-router-dom";
 
 import Checkbox from "./Checkbox";
 import ProductList from "./ProductList";
+import { Dialog, Transition } from "@headlessui/react";
+import { store } from '../store/store'
+import { useDispatch, useSelector } from "react-redux";
+
+import { modalOpen } from "../actions/global";
 
 const baseURL = "http://localhost/spacex/server/";
 
+
 export default function Home() {
+
+    const state = useSelector(state => state)
+    const dispatch = useDispatch();
+
+    const modalStatus = useSelector((state: any) => state.global.modalOpen)
+    // console.log(modalStatus)
+
+    const productId = useSelector((state: any) => state.global.modalOpen.id)
+
+    function closeModal() {
+        dispatch(
+            modalOpen(false)
+        )
+    }
+
+
 
     const [dataList, setDataList] = useState([]);
 
@@ -109,11 +133,147 @@ export default function Home() {
         return self.indexOf(value) === index
     }
 
-
     const uniqueAges = filteredProducts.filter(unique)
+
+    const [uniqueModal, setUniqueModal] = useState([]);
+    React.useEffect(() => {
+        setUniqueModal(uniqueAges);
+    }, []);
+    // console.log(modalStatus)
+
+
+    const [itemData, setItemData] = React.useState({
+        image: "",
+        name: "",
+        full_name: "",
+        status: "",
+        type: "",
+        locality: "",
+        region: "",
+        latitude: "",
+        longitude: "",
+        landing_attempts: "",
+        landing_successes: "",
+        wikipedia: "",
+        details: "",
+        launches: "",
+    })
+
+
+    React.useEffect(() => {
+        if (modalStatus.status === true) {
+
+            dataList.filter(function (element) {
+                if (element['id'] === productId) {
+                    setItemData({
+                        image: element['images']['large'],
+                        name: element['name'],
+                        full_name: element['full_name'],
+                        status: element['status'],
+                        type: element['type'],
+                        locality: element['locality'],
+                        region: element['region'],
+                        latitude: element['latitude'],
+                        longitude: element['longitude'],
+                        landing_attempts: element['landing_attempts'],
+                        landing_successes: element['landing_successes'],
+                        wikipedia: element['wikipedia'],
+                        details: element['details'],
+                        launches: element['launches'],
+
+                    });
+                }
+            });
+            console.log(itemData)
+        }
+    }, [dataList, itemData, modalStatus.status, productId]);
+
+
+    // console.log(dataList)
     return (
         <>
             <Layout>
+                <Transition appear show={modalStatus.status === "" ? false : modalStatus.status === true ? true : false} as={Fragment}>
+                    <Dialog as="div" className="relative z-50" onClose={closeModal}>
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0"
+                            enterTo="opacity-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100"
+                            leaveTo="opacity-0"
+                        >
+                            <div className="fixed inset-0 bg-black bg-opacity-25" />
+                        </Transition.Child>
+
+                        <div className="fixed inset-0 overflow-y-auto">
+                            <div className="flex min-h-full items-center justify-center p-4 text-center">
+                                <Transition.Child
+                                    as={Fragment}
+                                    enter="ease-out duration-300"
+                                    enterFrom="opacity-0 scale-95"
+                                    enterTo="opacity-100 scale-100"
+                                    leave="ease-in duration-200"
+                                    leaveFrom="opacity-100 scale-100"
+                                    leaveTo="opacity-0 scale-95"
+                                >
+                                    <Dialog.Panel className="w-full max-w-xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                        <Dialog.Title
+                                            as="h3"
+                                            className="text-lg font-medium leading-6 text-gray-900 flex justify-between"
+                                        >
+                                            <div>
+                                                <p>{itemData.full_name} ({itemData.name})</p>
+                                                <p className="text-base">Status: {itemData.status}</p>
+                                                <p className="text-base">Type: {itemData.type}</p>
+                                                <p className="text-base">Locality: {itemData.locality}</p>
+                                            </div>
+                                            <img src={itemData.image}
+                                                className="w-32"
+                                            />
+
+                                        </Dialog.Title>
+                                        <div className="mt-4 ">
+
+                                            <p className="text-sm text-gray-500">
+                                                {itemData.details}
+                                            </p>
+                                        </div>
+
+                                        <div className="mt-4">
+                                            <p><strong>Other Detail:</strong></p>
+                                            <div className="flex justify-start">
+                                                <p className="text-base mr-4">latitude: {itemData.latitude}</p>
+                                                <p className="text-base">longitude:  {itemData.longitude}</p>
+
+                                            </div>
+                                            <div className="flex justify-start">
+                                                <p className="text-base mr-4">Landing Attempts: {itemData.landing_attempts}</p>
+                                                <p className="text-base">Landing Successes: {itemData.landing_successes} </p>
+                                            </div>
+
+                                        </div>
+
+                                        <div className="mt-4">
+                                            <button
+                                                type="button"
+                                                className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                                onClick={closeModal}
+                                            >
+                                                <a href="">
+                                                    Read More
+                                                </a>
+                                            </button>
+                                        </div>
+                                    </Dialog.Panel>
+                                </Transition.Child>
+                            </div>
+                        </div>
+                    </Dialog>
+                </Transition>
+
+
                 <>
                     {console.log(filteredProducts)}
                 </>
@@ -142,6 +302,7 @@ export default function Home() {
                         </div>
                     </div>
                     <section className="mx-auto">
+
                         <div className="container mx-auto">
                             <div className="mx-auto max-w-2xl py-16 sm:py-24 sm:px-6 lg:max-w-7xl">
                                 <h3 className="mb-8 text-2xl text-center font-semibold text-black">Customers also purchased</h3>
