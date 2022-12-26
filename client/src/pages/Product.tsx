@@ -1,4 +1,6 @@
-const Product = ({ title, category }) => {
+import { ReactNode } from 'react';
+
+const Product = ({ title, category }: { title: ReactNode; category: ReactNode; }) => {
     return (
         <article>
             <h3>{title}</h3>

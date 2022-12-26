@@ -16,7 +16,6 @@ const containerss = {
     }
 };
 
-
 const ProductList = props => {
     const dispatch = useDispatch();
     const { products } = props;
