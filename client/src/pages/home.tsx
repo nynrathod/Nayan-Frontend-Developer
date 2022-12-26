@@ -1,61 +1,40 @@
 
 import React, { Fragment, useState } from "react";
+import { Link } from "react-router-dom";
+import { Dialog, Transition } from "@headlessui/react";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 
-import { motion } from "framer-motion";
-
 import Layout from "../components/Layout";
-import { Link } from "react-router-dom";
-
 import Checkbox from "./Checkbox";
 import ProductList from "./ProductList";
-import { Dialog, Transition } from "@headlessui/react";
-import { store } from '../store/store'
-import { useDispatch, useSelector } from "react-redux";
-
 import { modalOpen } from "../actions/global";
 
 const baseURL = "http://localhost/spacex/server/";
 
-
 export default function Home() {
 
-    const state = useSelector(state => state)
+    // state define
     const dispatch = useDispatch();
-
     const modalStatus = useSelector((state: any) => state.global.modalOpen)
-    // console.log(modalStatus)
-
     const productId = useSelector((state: any) => state.global.modalOpen.id)
 
-    function closeModal() {
-        dispatch(
-            modalOpen(false)
-        )
-    }
-
-
-
     const [dataList, setDataList] = useState([]);
-
     const [productData, setProductData] = useState({
         products: dataList,
     })
-
     const [productStatus, setProductStatus] = useState({
         status: {
             active: false,
             retired: false
         }
     })
-
     const [productType, setProductType] = useState({
         type: {
             RTLS: false,
             ASDS: false
         }
     })
-
     const [productRegion, setProductRegion] = useState({
         region: {
             Florida: false,
@@ -63,10 +42,7 @@ export default function Home() {
         }
     })
 
-
-
-    // console.log(productData)
-
+    // Fetch Data
     React.useLayoutEffect(() => {
         axios.get(`${baseURL}/page.php`).then((response) => {
             const data = response.data;
@@ -75,8 +51,11 @@ export default function Home() {
         });
     }, []);
 
+    // On checkbox select filter launchpads
     function handleChange(e: any, prevState: any) {
         const { name } = e.target;
+
+        // Set product type
         setProductType(prevState => {
             return {
                 type: {
@@ -86,6 +65,7 @@ export default function Home() {
             };
         });
 
+        // Set Product Status
         setProductStatus(prevState => {
             return {
                 status: {
@@ -95,6 +75,7 @@ export default function Home() {
             };
         });
 
+        // Set Product Region
         setProductRegion(prevState => {
             return {
                 region: {
@@ -103,12 +84,9 @@ export default function Home() {
                 }
             };
         });
-
-
-
     };
 
-
+    // Stored checked product in variable
     const checkedProducts =
         Object.entries(productStatus.status)
             .filter(status => status[1])
@@ -120,6 +98,7 @@ export default function Home() {
                             .filter(region => region[1])
                             .map(region => region[0]));
 
+    // Get filtered product
     const filteredProducts =
         productData.products.filter(({ status }) =>
             checkedProducts.includes(status)).concat(
@@ -129,19 +108,20 @@ export default function Home() {
                             checkedProducts.includes(region)));
 
 
+    // fjunction to get unique values from product
     const unique = (value: any, index: any, self: string | any[]) => {
         return self.indexOf(value) === index
     }
-
     const uniqueAges = filteredProducts.filter(unique)
 
-    const [uniqueModal, setUniqueModal] = useState([]);
-    React.useEffect(() => {
-        setUniqueModal(uniqueAges);
-    }, []);
-    // console.log(modalStatus)
 
+    function closeModal() {
+        dispatch(
+            modalOpen(false)
+        )
+    }
 
+    // Define single product content
     const [itemData, setItemData] = React.useState({
         image: "",
         name: "",
@@ -159,10 +139,9 @@ export default function Home() {
         launches: "",
     })
 
-
+    // Store data of selected product in state
     React.useEffect(() => {
         if (modalStatus.status === true) {
-
             dataList.filter(function (element) {
                 if (element['id'] === productId) {
                     setItemData({
@@ -180,19 +159,17 @@ export default function Home() {
                         wikipedia: element['wikipedia'],
                         details: element['details'],
                         launches: element['launches'],
-
                     });
                 }
             });
-            console.log(itemData)
         }
     }, [dataList, itemData, modalStatus.status, productId]);
 
-
-    // console.log(dataList)
     return (
         <>
             <Layout>
+
+                {/* Modal */}
                 <Transition appear show={modalStatus.status === "" ? false : modalStatus.status === true ? true : false} as={Fragment}>
                     <Dialog as="div" className="relative z-50" onClose={closeModal}>
                         <Transition.Child
@@ -231,11 +208,11 @@ export default function Home() {
                                             </div>
                                             <img src={itemData.image}
                                                 className="w-32"
+                                                alt="productImage"
                                             />
-
                                         </Dialog.Title>
-                                        <div className="mt-4 ">
 
+                                        <div className="mt-4 ">
                                             <p className="text-sm text-gray-500">
                                                 {itemData.details}
                                             </p>
@@ -246,13 +223,11 @@ export default function Home() {
                                             <div className="flex justify-start">
                                                 <p className="text-base mr-4">latitude: {itemData.latitude}</p>
                                                 <p className="text-base">longitude:  {itemData.longitude}</p>
-
                                             </div>
                                             <div className="flex justify-start">
                                                 <p className="text-base mr-4">Landing Attempts: {itemData.landing_attempts}</p>
                                                 <p className="text-base">Landing Successes: {itemData.landing_successes} </p>
                                             </div>
-
                                         </div>
 
                                         <div className="mt-4">
@@ -261,7 +236,7 @@ export default function Home() {
                                                 className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                                                 onClick={closeModal}
                                             >
-                                                <a href="">
+                                                <a href={itemData.wikipedia}>
                                                     Read More
                                                 </a>
                                             </button>
@@ -273,13 +248,9 @@ export default function Home() {
                     </Dialog>
                 </Transition>
 
-
-                <>
-                    {console.log(filteredProducts)}
-                </>
                 <section className="text-gray-600 body-font">
-                    <div className="max-w-7xl mx-auto lg:flex px-5 py-[120px] content-center items-center home-banner">
-                        <div className="lg:w-3/6  md:ml-24 flex flex-col md:items-start lg:text-left items-center text-center">
+                    <div className="max-w-7xl mx-auto lg:flex px-5 py-[120px] md:justify-center items-center home-banner">
+                        <div className="md:w-3/6 md:ml-0 flex flex-col md:items-start lg:text-left items-center text-center">
                             <h1 className="mb-5 sm:text-6xl font-bold text-5xl items-center Avenir lg:w-3/4 xl:w-2/2 text-gray-900">
                                 What is Lorem Ipsum?
                             </h1>
@@ -294,22 +265,22 @@ export default function Home() {
                                 </Link>
                             </div>
                         </div>
-                        <div className="w-2/4 mb-0 lg:mb-0 md:pl-10 m-auto">
+                        <div className="md:w-2/4 mb-0 lg:mb-0 m-auto">
                             <img
-                                className="md:ml-1 ml-24"
                                 src="/images/rocket-banner.png"
+                                alt="bannerPhoto"
                             />
                         </div>
                     </div>
-                    <section className="mx-auto">
 
+                    <section className="px-5 md:px-0 mx-auto">
                         <div className="container mx-auto">
                             <div className="mx-auto max-w-2xl py-16 sm:py-24 sm:px-6 lg:max-w-7xl">
                                 <h3 className="mb-8 text-2xl text-center font-semibold text-black">Customers also purchased</h3>
-                                <div className="flex justify-between">
+                                <div className="grid justify-start md:flex md:justify-between">
                                     <div>
                                         <h5>Filter by Status</h5>
-                                        <div className="flex justify-end">
+                                        <div className="flex justify-start md:justify-end">
                                             <Checkbox
                                                 id="1"
                                                 title="Active"
@@ -321,13 +292,12 @@ export default function Home() {
                                                 title="Retired"
                                                 name="retired"
                                                 handleChange={handleChange}
-
                                             />
                                         </div>
                                     </div>
                                     <div>
                                         <h5>Filter by Type</h5>
-                                        <div className="flex justify-end">
+                                        <div className="flex justify-start md:justify-end">
                                             <Checkbox
                                                 id="3"
                                                 title="RTLS"
@@ -339,13 +309,12 @@ export default function Home() {
                                                 title="ASDS"
                                                 name="ASDS"
                                                 handleChange={handleChange}
-
                                             />
                                         </div>
                                     </div>
                                     <div>
                                         <h5>Filter by Region</h5>
-                                        <div className="flex justify-end">
+                                        <div className="flex justify-start md:justify-end">
                                             <Checkbox
                                                 id="5"
                                                 title="California"
@@ -357,12 +326,10 @@ export default function Home() {
                                                 title="Florida"
                                                 name="Florida"
                                                 handleChange={handleChange}
-
                                             />
                                         </div>
                                     </div>
                                 </div>
-
 
                                 <ProductList
                                     products={
@@ -371,10 +338,7 @@ export default function Home() {
                                             : uniqueAges
                                     }
                                 />
-
                             </div>
-
-
 
                             <div className="flex flex-col w-full mb-4 text-left lg:text-center">
                                 <h3 className="mb-8 text-2xl Avenir font-semibold text-black">
@@ -414,8 +378,8 @@ export default function Home() {
                             </div>
                         </div>
                     </section>
-                    <div className="grr max-w-7xl pt-20 mx-auto text-center">
-                        <h1 className="mb-8 text-6xl Avenir font-semibold text-gray-900">
+                    <div className="grr max-w-7xl px-5 pt-20 mx-auto text-center">
+                        <h1 className="mb-8 text-4xl md:text-6xl Avenir font-semibold text-gray-900">
                             Less code, less effort.
                         </h1>
                         <h1 className="mb-8 text-2xl Avenir font-semibold text-gray-600 text-center">
@@ -425,13 +389,14 @@ export default function Home() {
                             <img
                                 className="w-4/6 md:ml-1 ml-24 border"
                                 src="/images/placeholder.png"
+                                alt="placeholder"
                             />
                         </div>
                     </div>
                     <section className="relative">
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
                             <div className="py-24 md:py-36">
-                                <h1 className="mb-5 text-6xl Avenir font-semibold text-gray-900">
+                                <h1 className="mb-5 text-4xl md:text-6xl Avenir font-semibold text-gray-900">
                                     Subscribe to our newsletter
                                 </h1>
                                 <h1 className="mb-9 text-2xl font-semibold text-gray-600">

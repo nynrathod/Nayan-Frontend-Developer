@@ -3,11 +3,8 @@
     header("Content-Type: application/json;");
     
     include_once 'class/page.php';
-
     $items = new Page();
-
-   $stmt = $items->getPageToken();
-    
+    $stmt = $items->getPageToken();
 
     echo $stmt;
 
