@@ -7,7 +7,7 @@ class Page {
         curl_setopt_array(
             $curl,
             array(
-            CURLOPT_URL            => 'https://api.spacexdata.com/v4/capsules',
+            CURLOPT_URL            => 'https://api.spacexdata.com/v4/landpads',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING       => '',
             CURLOPT_MAXREDIRS      => 10,
