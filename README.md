@@ -1,4 +1,4 @@
-# Nayan-Frontend-Developer
+# React-spacex-api 
 Spacex api implementation with react and php
 
 # Getting Started with Create React App
